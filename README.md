@@ -1,6 +1,8 @@
 # OldGPT
 **OldGPT** is a nostalgic chatting experience designed for older Android phones, allowing users to access ChatGPT on devices with outdated browsers and operating systems.
 
+You need to struct those source code files
+
 ## Features:
 - Lightweight and optimized for older devices.
 - Embedded web browser for seamless ChatGPT interaction.
