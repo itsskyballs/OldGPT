@@ -29,6 +29,8 @@ OldGPT is licensed under the [GNU General Public License (GPL) 2.0](https://gith
 ## Issues and Support:
 If you encounter any issues or have suggestions for improvement, feel free to file an issue on our [GitHub Issues](https://github.com/stevenkiethanete/OldGPT/issues) page.
 
+Structure those source code because im lazy of typing folders you can see in the commit title
+
 You can ask me to make a OldGPT logo on my email(stevenkiethdurog100@gmail.com) here or ask for pull request
 
 Enjoy the nostalgic journey with OldGPT!
