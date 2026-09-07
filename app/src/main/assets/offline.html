@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Offline / Unsupported</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .container { max-width: 600px; margin: auto; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Unable to load Chat</h1>
+    <p>Your device or configuration couldn't load chat.openai.com. This app tried the system WebView and a GeckoView fallback (if installed).
+    </p>
+    <p>Possible reasons:</p>
+    <ul>
+      <li>Old Android TLS / cipher support</li>
+      <li>Missing Gecko native libraries (if you chose to use Gecko)</li>
+      <li>Network problems</li>
+    </ul>
+    <p>See the GECKO_INTEGRATION.md in the repository for instructions to add Gecko binaries for armeabi-v7a and x86.</p>
+  </div>
+</body>
+</html>
