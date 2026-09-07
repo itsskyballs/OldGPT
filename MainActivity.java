@@ -1,9 +1,10 @@
-package com.Pususheen.lowpolychatgpt;
+package com.pususheen.lowpolychatgpt;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.WebChromeClient;
@@ -11,64 +12,87 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
+import android.widget.FrameLayout;
 
 public class MainActivity extends Activity {
+    private static final String TAG = "OldGPT";
+    private static final String CHAT_URL = "https://chat.openai.com";
+
     private WebView webView;
+    private FrameLayout container;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-        RelativeLayout layout = new RelativeLayout(this);
-        TextView startupMessage = new TextView(this);
-        startupMessage.setText("OldGPT for old phones\n\nThis embedded app allows you to chat on an old Android phone.\n\nIf you have any issues with this embedded app, feel free to file an issue on my official GitHub repo.");
-        RelativeLayout.LayoutParams messageParams = new RelativeLayout.LayoutParams(
-			RelativeLayout.LayoutParams.WRAP_CONTENT,
-			RelativeLayout.LayoutParams.WRAP_CONTENT
-        );
-        messageParams.addRule(RelativeLayout.CENTER_IN_PARENT);
-        layout.addView(startupMessage, messageParams);
+        container = findViewById(R.id.web_container);
+        Button exitButton = findViewById(R.id.exit_button);
 
+        exitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showExitDialog();
+            }
+        });
+
+        boolean geckoAvailable = isClassPresent("org.mozilla.geckoview.GeckoView");
+        if (geckoAvailable) {
+            Log.i(TAG, "GeckoView classes found at runtime. If you added GeckoView AAR and native libs, you can initialize Gecko here.");
+            // Developer: implement GeckoLoader.initWithGecko(...) after adding geckoview.aar and native libs
+            try {
+                com.pususheen.lowpolychatgpt.GeckoLoader.initWithGecko(this, container);
+            } catch (Throwable t) {
+                Log.w(TAG, "Gecko initialization failed: " + t.getMessage());
+                setupWebViewFallback();
+            }
+        } else {
+            Log.i(TAG, "GeckoView not available - falling back to WebView");
+            setupWebViewFallback();
+        }
+    }
+
+    private void setupWebViewFallback() {
         webView = new WebView(this);
-        RelativeLayout.LayoutParams webParams = new RelativeLayout.LayoutParams(
-			RelativeLayout.LayoutParams.MATCH_PARENT,
-			RelativeLayout.LayoutParams.MATCH_PARENT
-        );
-        layout.addView(webView, webParams);
-		
+        webView.setLayoutParams(new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+        ));
+
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
+        webSettings.setDomStorageEnabled(true);
+        webSettings.setDatabaseEnabled(true);
         webSettings.setUseWideViewPort(true);
         webSettings.setLoadWithOverviewMode(true);
-        webSettings.setUserAgentString("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3");
+        // Use an older-compatible user agent string but still modern enough
+        webSettings.setUserAgentString("Mozilla/5.0 (Linux; Android 4.4; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.91 Mobile Safari/537.36");
 
         webView.setWebChromeClient(new WebChromeClient());
-        webView.setWebViewClient(new WebViewClient());
-        webView.loadUrl("https://chat.openai.com");
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                Log.w(TAG, "WebView error: " + errorCode + " " + description);
+                view.loadUrl("file:///android_asset/offline.html");
+            }
+        });
 
-        Button exitButton = new Button(this);
-        exitButton.setText("Exit");
-        exitButton.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View view) {
-					showExitDialog(); 
-				}
-			});
+        container.addView(webView);
+        try {
+            webView.loadUrl(CHAT_URL);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to load URL in WebView", e);
+            webView.loadUrl("file:///android_asset/offline.html");
+        }
+    }
 
-        RelativeLayout.LayoutParams exitParams = new RelativeLayout.LayoutParams(
-			RelativeLayout.LayoutParams.WRAP_CONTENT,
-			RelativeLayout.LayoutParams.WRAP_CONTENT
-        );
-
-        exitParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-        exitParams.addRule(RelativeLayout.ALIGN_PARENT_END);
-        exitParams.setMargins(0, 16, 16, 0);
-
-        layout.addView(exitButton, exitParams);
-
-        setContentView(layout);
+    private boolean isClassPresent(String className) {
+        try {
+            Class.forName(className);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 
     private void showExitDialog() {
@@ -76,29 +100,28 @@ public class MainActivity extends Activity {
         builder.setTitle("Quit Application?");
         builder.setMessage("You can chat later.");
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialogInterface, int i) {
-					finish(); 
-				}
-			});
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                finish();
+            }
+        });
         builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialogInterface, int i) {
-			
-				}
-			});
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+
+            }
+        });
         builder.show();
     }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {
-            if (webView.canGoBack()) {
+            if (webView != null && webView.canGoBack()) {
                 webView.goBack();
                 return true;
             } else {
-                showExitDialog(); 
+                showExitDialog();
             }
         }
         return super.onKeyDown(keyCode, event);
